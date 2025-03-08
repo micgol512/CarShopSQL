@@ -4,12 +4,21 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc --watch --preserveWatchOutput",
+    "start:api": "node --watch --env-fnpmile=.env ./dist/index.js",
+    "start:nodemon": "nodemon ./dist/index.js"
   },
-  "author": "",
+  "author": "micgol512",
   "license": "ISC",
-  "description": "",
+  "description": "Simple API CarShop",
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.9",
     "pg": "^8.13.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4"
   }
 }

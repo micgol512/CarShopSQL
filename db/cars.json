@@ -1,0 +1,11 @@
+[
+  { "id": "1", "model": "Zafira", "price": 8000, "ownerId": null },
+  { "id": "2", "model": "Mazda", "price": 12000, "ownerId": null },
+  { "id": "3", "model": "Opel", "price": 10, "ownerId": null },
+  { "id": "4", "model": "Astra", "price": 1000, "ownerId": null },
+  { "id": "5", "model": "Corsa", "price": 500, "ownerId": null },
+  { "id": "5", "model": "Zafira", "price": 12, "ownerId": null },
+  { "id": "6", "model": "Maluch", "price": 2000, "ownerId": null },
+  { "id": "7", "model": "Pegueot", "price": 10, "ownerId": null },
+  { "id": "8", "model": "Pegueot", "price": 10, "ownerId": null }
+]
