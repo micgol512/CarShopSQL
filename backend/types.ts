@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from "http";
 
 export interface User {
-  id: string;
+  id?: string;
   username: string;
   password: string;
   role: "admin" | "user";
