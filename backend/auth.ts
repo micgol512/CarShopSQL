@@ -1,4 +1,5 @@
 import { loadUsers } from "./data.js";
+import { pool } from "./sqlQuerys.js";
 import { TokenPayload, User } from "./types.js";
 import { ServerResponse, IncomingMessage } from "http";
 import jwt from "jsonwebtoken";
@@ -17,12 +18,14 @@ export function decodeToken(token: string): TokenPayload | null {
   }
 }
 export async function getUserFromToken(token: string): Promise<User | null> {
-  const users = await loadUsers();
-  const id = decodeToken(token);
+  const id = decodeToken(token)?.userId;
   if (!id) {
     return null;
   }
-  return users.get(id.userId);
+  const {
+    rows: [user],
+  } = await pool.query<User>(`SELECT * FROM users WHERE id=$1;`, [id]);
+  return user;
 }
 
 export function setAuthCookie(

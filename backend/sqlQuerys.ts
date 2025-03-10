@@ -1,8 +1,8 @@
 import pkg from "pg";
-import { User } from "./types.js";
+import { Car, User } from "./types.js";
 const { Pool } = pkg;
 
-const pool = new Pool({
+export const pool = new Pool({
   user: "admin",
   host: "localhost",
   database: "workshop",
@@ -23,23 +23,21 @@ async function test() {
 }
 async function createTables(): Promise<void> {
   try {
-    const res = await pool.query(`
-CREATE TABLE IF NOT EXISTS Users (
-    id SERIAL PRIMARY KEY,
+    const res = await pool.query(`CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(20) PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role VARCHAR(6) NOT NULL CHECK (role IN ('admin', 'user')),
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(10) CHECK (role IN ('admin', 'user')) NOT NULL,
     balance DECIMAL(10,2) DEFAULT 0 CHECK (balance >= 0)
+    CONSTRAINT id_format CHECK (id ~ '^(admin|user)[0-9]+$')
 );
 
-CREATE TABLE IF NOT EXISTS Cars (
+CREATE TABLE IF NOT EXISTS cars (
     id SERIAL PRIMARY KEY,
     model VARCHAR(100) NOT NULL,
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
-    ownerId INT REFERENCES Users(id) ON DELETE SET NULL
+    owner_id VARCHAR(20) REFERENCES users(id) ON DELETE SET NULL
 );`);
-
-    console.log("Utworzono tabele");
   } catch (err) {
     console.error("Coś poszło nie tak:", err);
   }
@@ -64,7 +62,8 @@ export async function getUsers(id?: string): Promise<void> {
 export async function addUser(user: User): Promise<void> {
   try {
     const res = await pool.query(
-      `INSERT INTO users (username,password,role,balance) VALUES ('${user.username}','${user.password}','${user.role}','${user.balance}');`
+      `INSERT INTO users (id, username,password,role,balance) VALUES ($1,$2,$3,$4,$5);`,
+      [user.id, user.username, user.password, user.role, user.balance]
     );
     console.log(
       `Dodano urzytkownika: ${user.username}" z rolą: "${user.role}" i snatem konta: "${user.balance}`
@@ -83,35 +82,29 @@ export async function deleteUser(id: string) {
     console.error("Błąd usuwania :", err);
   }
 }
-//// TESTy
 
-// createTables();
-const admin: User = {
-  username: "admin",
-  password: "admin123",
-  role: "admin",
-  balance: 100000,
-};
-const user1: User = {
-  username: "user",
-  password: "user123",
-  role: "user",
-  balance: 10000,
-};
-const user2: User = {
-  username: "nowy",
-  password: "user123",
-  role: "user",
-  balance: 10000,
-};
-// addUser(admin);
-// getUsers();
-async function doIT() {
-  await createTables();
-  await addUser(admin);
-  await addUser(user1);
-  await addUser(user2);
-  await getUsers();
-  await deleteUser("33");
+async function startData() {
+  try {
+    await pool.query(`SELECT id FROM users;`);
+    await pool.query(`SELECT id FROM cars;`);
+  } catch (_) {
+    await createTables();
+    await pool.query(`INSERT INTO users (id,username,password,role,balance) VALUES
+      ('admin001','admin','admin123','admin',100000),
+      ('user002','user','user123','user',10000);
+        INSERT INTO cars (model, price) VALUES
+    ('Zafira', 8000),
+    ('Mazda', 12000),
+    ('Opel', 10),
+    ('Astra', 1000),
+    ('Corsa', 500),
+    ('Zafira', 12),
+    ('Maluch', 2000),
+    ('Peugeot', 10),
+    ('Peugeot', 10);
+    `);
+
+    console.log("Utworzono nową baze danych i wypełniono danymi...");
+  }
 }
-doIT();
+startData();

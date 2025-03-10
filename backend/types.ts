@@ -1,7 +1,8 @@
 import { IncomingMessage, ServerResponse } from "http";
+import { pool } from "./sqlQuerys.js";
 
 export interface User {
-  id?: string;
+  id: string;
   username: string;
   password: string;
   role: "admin" | "user";
@@ -12,7 +13,7 @@ export interface Car {
   id: string;
   model: string;
   price: number;
-  ownerId: string | null;
+  owner_id: string | null;
 }
 
 export interface Base<T> {
@@ -63,6 +64,35 @@ export class BaseImpl<T extends { id: string }> implements Base<T> {
     this.data.push(item);
   }
 }
+
+// export interface BaseSQL<T> {
+//   table: string;
+//   get(): T[];
+//   get(id: string): T | null;
+//   set<K extends keyof T>(id: string, updates: Partial<Pick<T, K>>): void;
+//   delete(id: string): void;
+//   add(item: T): void;
+// }
+
+// export class BaseImplSQL<T extends { id: string }> implements BaseSQL<T> {
+// table: string = BaseImplSQL.getTableName(T)
+// static getTableName<K extends keyof TableMap>(key: K): string {
+//   return TableMap[key]; // Pobiera nazwę tabeli na podstawie typu
+// }
+//   get(): T[];
+//   get(id: string): T | null;
+//   get(id?: unknown): T | T[] | null {
+//     const table = "??????";
+//     if (!id) {
+//       return pool.query(`SELECT * FROM ${table}`);
+//     } else {
+//       return pool.query(`SELECT * FROM ${table} WHERE id='${id}'`);
+//     }
+//   }
+//   set<K extends keyof T>(id: string, updates: Partial<Pick<T, K>>): void {}
+//   add(item: T): void {}
+//   delete(id: string): void {}
+// }
 
 export type RequestHandler = (
   req: IncomingMessage,
