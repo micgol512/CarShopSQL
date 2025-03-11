@@ -57,9 +57,7 @@ export async function carsHandler(req: IncomingMessage, res: ServerResponse) {
           res.end(JSON.stringify({ error: "Samochód już jest sprzedany" }));
           return;
         }
-        // const { rows: users } = await pool.query<User>(
-        //   `SELECT * FROM users WHERE id='${carID}';`
-        // );
+
         const user = await getUserFromToken(token);
         if (!user) {
           res.writeHead(404, {
@@ -158,6 +156,7 @@ export async function usersHandler(req: IncomingMessage, res: ServerResponse) {
     res.end(JSON.stringify({ error: "Usera nie znaleziono." }));
     return;
   }
+  console.log("Czy tu w przed GET usera wchodzi?");
   if (req.method === "GET") {
     if (user.role !== "admin") {
       res.statusCode = 200;
@@ -259,7 +258,6 @@ export async function hackHandler(req: IncomingMessage, res: ServerResponse) {
   const token = parseCookies(req)["token"];
   const cash = req.url ? parseInt(req.url.split("/")[2]) : 1000;
   const user = await getUserFromToken(token);
-  console.log("Hakowy", user);
   if (!user) {
     res.statusCode = 403;
     res.end(
@@ -269,18 +267,28 @@ export async function hackHandler(req: IncomingMessage, res: ServerResponse) {
     );
     return;
   }
-  await pool.query<User>(`UPDATE users SET balance=$1 WHERE id=$2`, [
-    user.balance + cash,
-    user.id,
-  ]);
-  res.writeHead(202, {
-    "Content-Type": "application/json",
-  });
-  res.end(
-    JSON.stringify({
-      message: `Hacked!!! User o ID: "${user.id}" dodał ${cash} na swoje konto`,
-    })
-  );
+  try {
+    const newBalance: number = user.balance + cash;
+    await pool.query<User>(`UPDATE users SET balance=$1 WHERE id=$2`, [
+      newBalance,
+      user.id,
+    ]);
+
+    res.writeHead(202, {
+      "Content-Type": "application/json",
+    });
+    res.end(
+      JSON.stringify({
+        message: `Hacked!!! User o ID: "${user.id}" dodał ${cash} na swoje konto`,
+      })
+    );
+  } catch (err) {
+    res.end(
+      JSON.stringify({
+        error: err,
+      })
+    );
+  }
 }
 export function notFoundHandler(req: IncomingMessage, res: ServerResponse) {
   res.writeHead(404, { "Content-Type": "text/html" });
@@ -304,11 +312,16 @@ export async function loginHandler(req: IncomingMessage, res: ServerResponse) {
         setAuthCookie(res, encodeToken(user.id));
         res.writeHead(200, { "Content-Type": "application/json" });
         if (user.role !== "admin") {
+          // console.log("To dziala w userow");
+          // console.log("User to:", user);
+
           res.end(JSON.stringify(user));
         } else {
+          // console.log("To dziala w adminie ");
           const { rows: users } = await pool.query<User>(
-            `SELECT username,balance FROM users ORDER BY id ASC;`
+            `SELECT * FROM users ORDER BY id ASC;`
           );
+          // console.log("Usersi to:", users);
           res.end(JSON.stringify(users));
         }
       } else {
@@ -368,12 +381,13 @@ export async function registerHandler(
       console.log(`Liczba userow: ${count}`);
 
       const newUser = {
-        id: `${username.toLowerCase()}${count.toString().padStart(3, "0")}`,
+        id: `${role.toLowerCase()}${(count + 1).toString().padStart(3, "0")}`,
         username: username.toLowerCase(),
         password: password,
         role: role,
-        balance: 0,
+        balance: 10000,
       };
+
       await pool.query<User>(
         `INSERT INTO users (id,username,password,role,balance) VALUES
       ($1,$2,$3,$4,$5);`,
@@ -385,8 +399,6 @@ export async function registerHandler(
           newUser.balance,
         ]
       );
-      console.log("tu dziala");
-
       res.writeHead(201, { "Content-Type": "application/json" });
       res.end(JSON.stringify(newUser));
     } catch (e) {

@@ -1,5 +1,6 @@
 import pkg from "pg";
 import { Car, User } from "./types.js";
+import { decodeToken } from "./auth.js";
 const { Pool } = pkg;
 
 export const pool = new Pool({
@@ -28,14 +29,14 @@ async function createTables(): Promise<void> {
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(10) CHECK (role IN ('admin', 'user')) NOT NULL,
-    balance DECIMAL(10,2) DEFAULT 0 CHECK (balance >= 0)
+    balance DOUBLE PRECISION DEFAULT 0 CHECK (balance >= 0)
     CONSTRAINT id_format CHECK (id ~ '^(admin|user)[0-9]+$')
 );
 
 CREATE TABLE IF NOT EXISTS cars (
     id SERIAL PRIMARY KEY,
     model VARCHAR(100) NOT NULL,
-    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    price DOUBLE PRECISION NOT NULL CHECK (price >= 0),
     owner_id VARCHAR(20) REFERENCES users(id) ON DELETE SET NULL
 );`);
   } catch (err) {

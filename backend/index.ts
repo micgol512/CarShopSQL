@@ -36,7 +36,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse) {
   } else if (/^\/login\/?$/.test(reqUrl)) {
     r.loginHandler(req, res);
   } else if (/^\/users(\/[\w-]+)?\/?$/.test(reqUrl)) {
-    onlyForAdmins(req, res, r.usersHandler);
+    onlyForLogged(req, res, r.usersHandler);
   } else if (/^\/cars\/?$/.test(reqUrl) || /cars\/\d+\/buy\/?$/.test(reqUrl)) {
     onlyForLogged(req, res, r.carsHandler);
   } else if (/^\/hack\/\d+$/.test(reqUrl)) {

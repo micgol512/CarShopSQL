@@ -1,4 +1,3 @@
-import { loadUsers } from "./data.js";
 import { pool } from "./sqlQuerys.js";
 import { TokenPayload, User } from "./types.js";
 import { ServerResponse, IncomingMessage } from "http";
@@ -7,6 +6,8 @@ import jwt from "jsonwebtoken";
 export function encodeToken(userId: string): string {
   const SecretKey: string = process.env.SECRET_KEY as string;
   const payload: TokenPayload = { userId };
+  console.log("Koduje: ", userId);
+
   return jwt.sign(payload, SecretKey, { expiresIn: "1h" });
 }
 export function decodeToken(token: string): TokenPayload | null {
